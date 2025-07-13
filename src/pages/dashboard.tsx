@@ -3,8 +3,7 @@ import { supabase } from "../lib/supabaseClient";
 import LabelManager from "@/components/LabelManager";
 import { Header } from "@/components/Header";
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@/ui/button";
-import { Card } from "@/ui/card";
+import { Card } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
@@ -246,286 +245,301 @@ export default function Dashboard() {
   }
 
   return (
-    <>
-      <Header
-        user={user}
-        onLogout={handleLogout}
-        onExport={() => exportLeadsToCSV(filteredLeads)}
-      />
-      <div className="p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          {/* Filters */}
-         <div className="bg-white border p-4 rounded-xl shadow-sm space-y-4 md:col-span-2">
-  <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
-  <Select
-  value={filterType}
-  onValueChange={(val) => {
-    setFilterType(val);
-    setSelectedCompany(null);
-    setInitialVisitorSet(false);
-  }}
+  <>
+    <Header
+      user={user}
+      onLogout={handleLogout}
+      onExport={() => exportLeadsToCSV(filteredLeads)}
+    />
+    <div className="p-6 space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        {/* Filters */}
+       
+        <Card className="space-y-4 md:col-span-2">
+          <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
+
+          <Select
+            value={filterType}
+            onValueChange={(val) => {
+              setFilterType(val);
+              setSelectedCompany(null);
+              setInitialVisitorSet(false);
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecteer een filter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="alles">Alles</SelectItem>
+              <SelectItem value="vandaag">Vandaag</SelectItem>
+              <SelectItem value="gisteren">Gisteren</SelectItem>
+              <SelectItem value="deze-week">Deze week</SelectItem>
+              <SelectItem value="vorige-week">Vorige week</SelectItem>
+              <SelectItem value="vorige-maand">Vorige maand</SelectItem>
+              <SelectItem value="dit-jaar">Dit jaar</SelectItem>
+              <SelectItem value="aangepast">Aangepast</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {filterType === "aangepast" && (
+            <div className="space-y-2">
+              <Input
+                type="date"
+                value={customRange.from}
+                onChange={(e) =>
+                  setCustomRange((prev) => ({ ...prev, from: e.target.value }))
+                }
+              />
+              <Input
+                type="date"
+                value={customRange.to}
+                onChange={(e) =>
+                  setCustomRange((prev) => ({ ...prev, to: e.target.value }))
+                }
+              />
+            </div>
+          )}
+
+          <Select
+  value={labelFilter || "__all__"}
+  onValueChange={(val) => setLabelFilter(val === "__all__" ? "" : val)}
 >
   <SelectTrigger className="w-full">
-    <SelectValue placeholder="Selecteer een filter" />
+    <SelectValue placeholder="Filter op label" />
   </SelectTrigger>
   <SelectContent>
-    <SelectItem value="alles">Alles</SelectItem>
-    <SelectItem value="vandaag">Vandaag</SelectItem>
-    <SelectItem value="gisteren">Gisteren</SelectItem>
-    <SelectItem value="deze-week">Deze week</SelectItem>
-    <SelectItem value="vorige-week">Vorige week</SelectItem>
-    <SelectItem value="vorige-maand">Vorige maand</SelectItem>
-    <SelectItem value="dit-jaar">Dit jaar</SelectItem>
-    <SelectItem value="aangepast">Aangepast</SelectItem>
+    <SelectItem value="__all__">Alle labels</SelectItem>
+    {Array.from(new Set(labels.map((l) => l.label))).map((label) => (
+      <SelectItem key={label} value={label}>
+        {label}
+      </SelectItem>
+    ))}
   </SelectContent>
 </Select>
 
 
-  {filterType === "aangepast" && (
-    <div className="space-y-2">
-      <input
-        type="date"
-        value={customRange.from}
-        onChange={(e) =>
-          setCustomRange((prev) => ({ ...prev, from: e.target.value }))
-        }
-        className="w-full"
-      />
-      <input
-        type="date"
-        value={customRange.to}
-        onChange={(e) =>
-          setCustomRange((prev) => ({ ...prev, to: e.target.value }))
-        }
-        className="w-full"
-      />
-    </div>
-  )}
-  <div className="space-y-2">
-    <select
-      value={labelFilter}
-      onChange={(e) => setLabelFilter(e.target.value)}
-      className="w-full border rounded px-3 py-2 text-sm"
-    >
-      <option value="">Alle labels</option>
-      {Array.from(new Set(labels.map((l) => l.label))).map((label) => (
-        <option key={label} value={label}>
-          {label}
-        </option>
-      ))}
-    </select>
-    {/* … en de rest van je label-beheercode … */}
-  </div>
-  <Input
-  placeholder="Zoek bedrijfsnaam"
-  value={companySearch}
-  onChange={(e) => setCompanySearch(e.target.value)}
-/>
+          <Input
+            placeholder="Zoek bedrijfsnaam"
+            value={companySearch}
+            onChange={(e) => setCompanySearch(e.target.value)}
+          />
+          <Input
+            placeholder="Zoek land/stad"
+            value={locationSearch}
+            onChange={(e) => setLocationSearch(e.target.value)}
+          />
+          <Input
+            type="number"
+            placeholder="Minimaal bezoeken"
+            value={minVisits}
+            onChange={(e) => setMinVisits(e.target.value)}
+          />
+          <Input
+            placeholder="Zoek pagina"
+            value={pageSearch}
+            onChange={(e) => setPageSearch(e.target.value)}
+          />
+          <Input
+            type="number"
+            placeholder="Minimale duur (s)"
+            value={minDuration}
+            onChange={(e) => setMinDuration(e.target.value)}
+          />
+        </Card>
 
- <Input
-  placeholder="Zoek land/stad"
-  value={locationSearch}
-  onChange={(e) => setLocationSearch(e.target.value)}
-/>
-
-  <Input
-  type="number"
-  placeholder="Minimaal bezoeken"
-  value={minVisits}
-  onChange={(e) => setMinVisits(e.target.value)}
-/>
-
-  <Input
-  placeholder="Zoek pagina"
-  value={pageSearch}
-  onChange={(e) => setPageSearch(e.target.value)}
-/>
-
-  <Input
-  type="number"
-  placeholder="Minimale duur (s)"
-  value={minDuration}
-  onChange={(e) => setMinDuration(e.target.value)}
-/>
-
-</div>
-
-          {/* Bedrijvenlijst */}
-          <div
-  ref={labelMenuContainerRef}
-  className="bg-white border p-4 rounded-xl shadow-sm space-y-2 md:col-span-3"
->
-  <h2 className="text-lg font-semibold text-gray-800">Bedrijven</h2>
-  {companies.length === 0 && (
-    <p className="text-sm text-gray-500">Geen bezoekers binnen dit filter.</p>
-  )}
-  {companies
-    .filter(
-      (c) =>
-        c.company_name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        c.company_name.toLowerCase().includes(companySearch.toLowerCase())
-    )
-    .map((company) => (
-      <div
-        key={company.company_name}
-        ref={(el) => (companyRefs.current[company.company_name] = el)}
-        onClick={() => {
-          setSelectedCompany(company.company_name);
-          setInitialVisitorSet(false);
-        }}
-        className={`cursor-pointer flex flex-col gap-1 px-3 py-2 rounded ${
-          selectedCompany === company.company_name
-            ? "bg-blue-100 text-blue-700 font-semibold"
-            : "hover:bg-gray-100"
-        }`}
-      >
-        <div className="flex gap-2">
-          {company.company_domain && (
-            <img
-              src={`https://img.logo.dev/${company.company_domain}?token=pk_R_r8ley_R_C7tprVCpFASQ`}
-              alt="logo"
-              className="w-5 h-5 object-contain rounded-sm"
-              onError={(e) => (e.target.style.display = "none")}
-            />
+        {/* Bedrijvenlijst */}
+        <Card
+          ref={labelMenuContainerRef}
+          className="space-y-2 md:col-span-3"
+        >
+          <h2 className="text-lg font-semibold text-gray-800">Bedrijven</h2>
+          {companies.length === 0 && (
+            <p className="text-sm text-gray-500">
+              Geen bezoekers binnen dit filter.
+            </p>
           )}
-          <div className="flex flex-col">
-            <span>{company.company_name}</span>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {labels
-                .filter((l) => l.company_name === company.company_name)
-                .map((label) => (
-                  <span
-                    key={label.id}
-                    style={{ backgroundColor: label.color }}
-                    className="flex items-center gap-1 text-xs text-gray-700 px-2 py-0.5 rounded"
-                  >
-                    {label.label}
-                    <button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        await supabase
-                          .from("labels")
-                          .delete()
-                          .eq("id", label.id);
-                        refreshLabels();
-                      }}
-                      className="hover:text-red-600"
-                      title="Verwijderen"
-                    >
-                      ✕
-                    </button>
-                  </span>
-                ))}
-            </div>
-          </div>
-        </div>
-        {/* … en je +Label-menu etc. … */}
-      </div>
-    ))}
-</div>
-
-          {/* Activiteiten */}
-          <div className="space-y-4 md:col-span-7">
-  {selectedCompany ? (
-    <div className="bg-white border p-4 rounded-xl shadow-sm">
-      {selectedCompanyData && (
-        <>
-          <div className="mb-4 flex items-center gap-3">
-            {selectedCompanyData.company_domain && (
-              <img
-                src={`https://img.logo.dev/${selectedCompanyData.company_domain}?token=pk_R_r8ley_R_C7tprVCpFASQ`}
-                alt="logo"
-                className="w-8 h-8 object-contain rounded border"
-                onError={(e) => (e.target.style.display = "none")}
-              />
-            )}
-            <div>
-              <div className="font-semibold text-gray-800">
-                {selectedCompanyData.company_name}
-              </div>
-              {selectedCompanyData.linkedin_url && (
-                <a
-                  href={selectedCompanyData.linkedin_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 text-sm hover:underline"
-                >
-                  LinkedIn-profiel
-                </a>
-              )}
-              {selectedCompanyData.kvk_number && (
-                <div className="text-xs text-gray-500">
-                  KVK: {selectedCompanyData.kvk_number}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            {/* Bedrijfsgegevens + kaart */}
-            {/* … jouw code hiervoor … */}
-          </div>
-        </>
-      )}
-
-      <h2 className="text-lg font-semibold text-gray-800 mb-2">
-        Activiteiten – {selectedCompany}
-      </h2>
-
-      {sortedVisitors.length === 0 ? (
-        <p className="text-sm text-gray-500">Geen activiteiten gevonden.</p>
-      ) : (
-        sortedVisitors.map(([visitorId, sessions], index) => {
-          const isOpen = openVisitors.has(visitorId);
-          return (
-            <div
-              key={visitorId}
-              className="rounded-lg border bg-gray-50 p-4 mb-4 shadow-sm"
-            >
-              <button
-                onClick={() => toggleVisitor(visitorId)}
-                className="flex justify-between w-full text-left font-medium text-gray-800 text-sm"
+          {companies
+            .filter(
+              (c) =>
+                c.company_name
+                  .toLowerCase()
+                  .includes(searchTerm.toLowerCase()) &&
+                c.company_name
+                  .toLowerCase()
+                  .includes(companySearch.toLowerCase())
+            )
+            .map((company) => (
+              <div
+                key={company.company_name}
+                ref={(el) =>
+                  (companyRefs.current[company.company_name] = el)
+                }
+                onClick={() => {
+                  setSelectedCompany(company.company_name);
+                  setInitialVisitorSet(false);
+                }}
+                className={`cursor-pointer flex flex-col gap-1 px-3 py-2 rounded ${
+                  selectedCompany === company.company_name
+                    ? "bg-blue-100 text-blue-700 font-semibold"
+                    : "hover:bg-gray-100"
+                }`}
               >
-                Bezoeker {index + 1}
-                <span>{isOpen ? "▲" : "▼"}</span>
-              </button>
-              {isOpen && (
-  <div className="mt-3">
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Pagina</TableHead>
-          <TableHead>Tijdstip</TableHead>
-          <TableHead>Duur (s)</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {sessions.map((s) => (
-          <TableRow key={s.id}>
-            <TableCell>{s.page_url}</TableCell>
-            <TableCell>{new Date(s.timestamp).toLocaleString()}</TableCell>
-            <TableCell>{s.duration_seconds ?? "-"}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </div>
-)}
+                <div className="flex gap-2">
+                  {company.company_domain && (
+                    <img
+                      src={`https://img.logo.dev/${company.company_domain}?token=pk_R_r8ley_R_C7tprVCpFASQ`}
+                      alt="logo"
+                      className="w-5 h-5 object-contain rounded-sm"
+                      onError={(e) =>
+                        (e.currentTarget.style.display = "none")
+                      }
+                    />
+                  )}
+                  <div className="flex flex-col">
+                    <span>{company.company_name}</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {labels
+                        .filter(
+                          (l) =>
+                            l.company_name === company.company_name
+                        )
+                        .map((label) => (
+                          <span
+                            key={label.id}
+                            style={{ backgroundColor: label.color }}
+                            className="flex items-center gap-1 text-xs text-gray-700 px-2 py-0.5 rounded"
+                          >
+                            {label.label}
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                await supabase
+                                  .from("labels")
+                                  .delete()
+                                  .eq("id", label.id);
+                                refreshLabels();
+                              }}
+                              className="hover:text-red-600"
+                              title="Verwijderen"
+                            >
+                              ✕
+                            </button>
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+        </Card>
 
+        {/* Activiteiten */}
+        <div className="space-y-4 md:col-span-7">
+          {selectedCompany ? (
+            <Card>
+              {selectedCompanyData && (
+                <>
+                  <div className="mb-4 flex items-center gap-3">
+                    {selectedCompanyData.company_domain && (
+                      <img
+                        src={`https://img.logo.dev/${selectedCompanyData.company_domain}?token=pk_R_r8ley_R_C7tprVCpFASQ`}
+                        alt="logo"
+                        className="w-8 h-8 object-contain rounded border"
+                        onError={(e) =>
+                          (e.currentTarget.style.display = "none")
+                        }
+                      />
+                    )}
+                    <div>
+                      <div className="font-semibold text-gray-800">
+                        {selectedCompanyData.company_name}
+                      </div>
+                      {selectedCompanyData.linkedin_url && (
+                        <a
+                          href={selectedCompanyData.linkedin_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 text-sm hover:underline"
+                        >
+                          LinkedIn-profiel
+                        </a>
+                      )}
+                      {selectedCompanyData.kvk_number && (
+                        <div className="text-xs text-gray-500">
+                          KVK: {selectedCompanyData.kvk_number}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <h2 className="text-lg font-semibold text-gray-800 mb-2">
+                Activiteiten – {selectedCompany}
+              </h2>
+
+              {sortedVisitors.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                  Geen activiteiten gevonden.
+                </p>
+              ) : (
+                sortedVisitors.map(([visitorId, sessions], index) => {
+                  const isOpen = openVisitors.has(visitorId);
+                  return (
+                    <div
+                      key={visitorId}
+                      className="rounded-lg border bg-gray-50 p-4 mb-4 shadow-sm"
+                    >
+                      <Button
+                        variant="ghost"
+                        onClick={() => toggleVisitor(visitorId)}
+                        className="flex justify-between w-full text-left font-medium text-sm"
+                      >
+                        Bezoeker {index + 1}
+                        <span>{isOpen ? "▲" : "▼"}</span>
+                      </Button>
+                      {isOpen && (
+                        <div className="mt-3">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Pagina</TableHead>
+                                <TableHead>Tijdstip</TableHead>
+                                <TableHead>Duur (s)</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {sessions.map((s) => (
+                                <TableRow key={s.id}>
+                                  <TableCell>{s.page_url}</TableCell>
+                                  <TableCell>
+                                    {new Date(
+                                      s.timestamp
+                                    ).toLocaleString()}
+                                  </TableCell>
+                                  <TableCell>
+                                    {s.duration_seconds ?? "-"}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </Card>
+          ) : (
+            <div className="bg-white border p-4 rounded text-gray-500">
+              Selecteer een bedrijf om activiteiten te bekijken.
             </div>
-          );
-        })
-      )}
-    </div>
-  ) : (
-    <div className="bg-white border p-4 rounded text-gray-500">
-      Selecteer een bedrijf om activiteiten te bekijken.
-    </div>
-  )}
-</div>
-
+          )}
         </div>
       </div>
-    </>
-  );
+        </div>
+  </>
+);
 }
+
