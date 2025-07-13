@@ -1,8 +1,14 @@
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 import LabelManager from "@/components/LabelManager";
-import Header from "@/components/Header";
+import { Header } from "@/components/Header";
 import { useEffect, useRef, useState } from "react";
+import { Button } from "@/ui/button";
+import { Card } from "@/ui/card";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -246,29 +252,35 @@ export default function Dashboard() {
         onLogout={handleLogout}
         onExport={() => exportLeadsToCSV(filteredLeads)}
       />
-      <div className="w-full max-w-none mx-auto px-4 py-10 space-y-6">
+      <div className="p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           {/* Filters */}
          <div className="bg-white border p-4 rounded-xl shadow-sm space-y-4 md:col-span-2">
   <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
-  <select
-    value={filterType}
-    onChange={(e) => {
-      setFilterType(e.target.value);
-      setSelectedCompany(null);
-      setInitialVisitorSet(false);
-    }}
-    className="w-full border rounded px-3 py-2 text-sm"
-  >
-    <option value="alles">Alles</option>
-    <option value="vandaag">Vandaag</option>
-    <option value="gisteren">Gisteren</option>
-    <option value="deze-week">Deze week</option>
-    <option value="vorige-week">Vorige week</option>
-    <option value="vorige-maand">Vorige maand</option>
-    <option value="dit-jaar">Dit jaar</option>
-    <option value="aangepast">Aangepast</option>
-  </select>
+  <Select
+  value={filterType}
+  onValueChange={(val) => {
+    setFilterType(val);
+    setSelectedCompany(null);
+    setInitialVisitorSet(false);
+  }}
+>
+  <SelectTrigger className="w-full">
+    <SelectValue placeholder="Selecteer een filter" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="alles">Alles</SelectItem>
+    <SelectItem value="vandaag">Vandaag</SelectItem>
+    <SelectItem value="gisteren">Gisteren</SelectItem>
+    <SelectItem value="deze-week">Deze week</SelectItem>
+    <SelectItem value="vorige-week">Vorige week</SelectItem>
+    <SelectItem value="vorige-maand">Vorige maand</SelectItem>
+    <SelectItem value="dit-jaar">Dit jaar</SelectItem>
+    <SelectItem value="aangepast">Aangepast</SelectItem>
+  </SelectContent>
+</Select>
+
+
   {filterType === "aangepast" && (
     <div className="space-y-2">
       <input
@@ -304,41 +316,38 @@ export default function Dashboard() {
     </select>
     {/* … en de rest van je label-beheercode … */}
   </div>
-  <input
-    type="text"
-    placeholder="Zoek bedrijfsnaam"
-    value={companySearch}
-    onChange={(e) => setCompanySearch(e.target.value)}
-    className="w-full border rounded px-3 py-2 text-sm"
-  />
-  <input
-    type="text"
-    placeholder="Zoek land/stad"
-    value={locationSearch}
-    onChange={(e) => setLocationSearch(e.target.value)}
-    className="w-full border rounded px-3 py-2 text-sm"
-  />
-  <input
-    type="number"
-    placeholder="Minimaal bezoeken"
-    value={minVisits}
-    onChange={(e) => setMinVisits(e.target.value)}
-    className="w-full border rounded px-3 py-2 text-sm"
-  />
-  <input
-    type="text"
-    placeholder="Zoek pagina"
-    value={pageSearch}
-    onChange={(e) => setPageSearch(e.target.value)}
-    className="w-full border rounded px-3 py-2 text-sm"
-  />
-  <input
-    type="number"
-    placeholder="Minimale duur (s)"
-    value={minDuration}
-    onChange={(e) => setMinDuration(e.target.value)}
-    className="w-full border rounded px-3 py-2 text-sm"
-  />
+  <Input
+  placeholder="Zoek bedrijfsnaam"
+  value={companySearch}
+  onChange={(e) => setCompanySearch(e.target.value)}
+/>
+
+ <Input
+  placeholder="Zoek land/stad"
+  value={locationSearch}
+  onChange={(e) => setLocationSearch(e.target.value)}
+/>
+
+  <Input
+  type="number"
+  placeholder="Minimaal bezoeken"
+  value={minVisits}
+  onChange={(e) => setMinVisits(e.target.value)}
+/>
+
+  <Input
+  placeholder="Zoek pagina"
+  value={pageSearch}
+  onChange={(e) => setPageSearch(e.target.value)}
+/>
+
+  <Input
+  type="number"
+  placeholder="Minimale duur (s)"
+  value={minDuration}
+  onChange={(e) => setMinDuration(e.target.value)}
+/>
+
 </div>
 
           {/* Bedrijvenlijst */}
@@ -481,26 +490,28 @@ export default function Dashboard() {
                 <span>{isOpen ? "▲" : "▼"}</span>
               </button>
               {isOpen && (
-                <div className="mt-3 space-y-2">
-                  {sessions.map((s) => (
-                    <div
-                      key={s.id}
-                      className="bg-white border rounded p-3 text-sm shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4"
-                    >
-                      <div className="truncate">
-                        <strong>Pagina:</strong> {s.page_url}
-                      </div>
-                      <div>
-                        <strong>Tijdstip:</strong>{" "}
-                        {new Date(s.timestamp).toLocaleString()}
-                      </div>
-                      <div>
-                        <strong>Duur:</strong> {s.duration_seconds ?? "-"}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+  <div className="mt-3">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Pagina</TableHead>
+          <TableHead>Tijdstip</TableHead>
+          <TableHead>Duur (s)</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {sessions.map((s) => (
+          <TableRow key={s.id}>
+            <TableCell>{s.page_url}</TableCell>
+            <TableCell>{new Date(s.timestamp).toLocaleString()}</TableCell>
+            <TableCell>{s.duration_seconds ?? "-"}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </div>
+)}
+
             </div>
           );
         })
